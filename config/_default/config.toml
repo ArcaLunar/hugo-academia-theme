@@ -1,0 +1,70 @@
+baseURL = "/"
+languageCode = "en"
+title = "Academic Persona"
+theme = "academia"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.extensions]
+      mark = true
+      table = true
+      strikethrough = true
+      linkify = true
+      taskList = true
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[params]
+  author = "Xu Qiyue"
+  [params.profile]
+    name = "Your Name"
+    title = "Your Title"
+    affiliation = "Your University"
+    location = "City, Country"
+    avatar = "me.png" # deprecated: prefer avatarPath
+    avatarPath = "me.png" # can be relative in static/ or absolute URL
+
+  [[params.social]]
+    label = "GitHub"
+    icon = "fab fa-github"
+    url = "https://github.com/yourname"
+  [[params.social]]
+    label = "LinkedIn"
+    icon = "fab fa-linkedin"
+    url = "https://linkedin.com/in/yourname"
+  [[params.social]]
+    label = "Scholar"
+    icon = "fa-solid fa-graduation-cap"
+    url = "https://scholar.google.com/"
+
+  [params.nav]
+    [[params.nav.items]]
+      label = "Blog"
+      url = "/blog"
+    [[params.nav.items]]
+      label = "Papers"
+      url = "/papers"
+    [[params.nav.items]]
+      label = "Projects"
+      url = "/projects"
+
+  [params.cards]
+    defaultStyle = "card" # or "borderless"
+
+  [[params.education]]
+    school = "University A"
+    degree = "PhD in CS"
+    period = "2020 - Present"
+    note = "Advisor: Prof. X"
+
+  [[params.awards]]
+    title = "Best Paper"
+    org = "Conf Y"
+    year = "2023"
+    note = ""
+
+  [[params.teaching]]
+    title = "Algorithms"
+    role = "TA"
+    term = "Fall 2023"
+    note = ""

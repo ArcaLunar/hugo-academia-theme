@@ -1,0 +1,29 @@
+{{ define "main" }}
+<article class="single">
+  <header class="single-header">
+    <h1>{{ .Title }}</h1>
+    <div class="meta">
+      {{ if eq .Section "papers" }}
+        {{ with .Params.authors }}<span>{{ delimit . ", " }}</span>{{ end }}
+        {{ with .Params.venue }} · <span>{{ . }}</span>{{ end }}
+        {{ with .Params.year }} · <span>{{ . }}</span>{{ end }}
+      {{ else if eq .Section "projects" }}
+        {{ with .Params.period }}<span>{{ . }}</span>{{ end }}
+        {{ with .Params.role }} · <span>{{ . }}</span>{{ end }}
+      {{ else if eq .Section "blog" }}
+        {{ .Date.Format "2006-01-02" }}
+      {{ else }}
+        {{ .Date.Format "2006-01-02" }}
+      {{ end }}
+    </div>
+  </header>
+  <div class="content markdown-body">
+    {{ .Content }}
+  </div>
+  {{ with .Params.links }}
+  <div class="links">
+    {{ range . }}<a class="link-soft" href="{{ .url }}">{{ .label }}</a>{{ end }}
+  </div>
+  {{ end }}
+</article>
+{{ end }}

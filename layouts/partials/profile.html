@@ -1,0 +1,32 @@
+<div class="profile-card">
+  {{ $avatar := or site.Params.profile.avatarPath site.Params.profile.avatar "me.png" }}
+  {{ $avatarURL := cond (hasPrefix $avatar "http") $avatar ($avatar | relURL) }}
+  <div class="avatar">
+    <img src="{{ $avatarURL }}" alt="{{ site.Params.profile.name }}" />
+  </div>
+  <div class="profile-text">
+    <h1>{{ site.Params.profile.name }}</h1>
+    <p class="role">{{ site.Params.profile.title }}</p>
+    <p class="affiliation">{{ site.Params.profile.affiliation }}</p>
+    {{ with site.Params.profile.location }}<p class="location">{{ . }}</p>{{ end }}
+  </div>
+  {{ with site.Params.social }}
+  <div class="social-links">
+    {{ range . }}
+      <a href="{{ .url }}" class="social" aria-label="{{ .label }}">
+        {{ partial "social-icon.html" (dict "icon" .icon "label" .label "size" 22) }}
+      </a>
+    {{ end }}
+  </div>
+  {{ end }}
+  {{ with site.Params.skills }}
+  <div class="skills">
+    <h3>Skills</h3>
+    <div class="skills-list">
+      {{ range . }}
+        <span class="skill-pill">{{ . }}</span>
+      {{ end }}
+    </div>
+  </div>
+  {{ end }}
+</div>

@@ -1,0 +1,33 @@
+{{ define "main" }}
+<div class="list-page">
+  <div class="list-header">
+    <h1>{{ .Title }}</h1>
+    {{ with .Params.description }}<p class="lead">{{ . }}</p>{{ end }}
+  </div>
+  <div class="card-list">
+    {{ range .Pages.ByDate.Reverse }}
+      {{ $metaTop := "" }}
+      {{ $metaBottom := "" }}
+      {{ if eq .Section "papers" }}
+        {{ $metaTop = or .Params.venue "" }}
+        {{ $metaBottom = or .Params.year "" }}
+      {{ else if eq .Section "projects" }}
+        {{ $metaTop = or .Params.role (or .Params.venue "") }}
+        {{ $metaBottom = or .Params.period "" }}
+      {{ else if eq .Section "blog" }}
+        {{ $metaTop = .Date.Format "2006-01-02" }}
+      {{ end }}
+      {{ $links := .Params.links }}
+      {{ if and (not $links) (eq .Section "papers") }}
+        {{ $links = slice (dict "label" "Read" "url" .Permalink) }}
+      {{ else if and (not $links) (eq .Section "projects") }}
+        {{ $links = slice (dict "label" "View" "url" (or .Params.link .Permalink)) }}
+      {{ else if and (not $links) (eq .Section "blog") }}
+        {{ $links = slice (dict "label" "Read" "url" .Permalink) }}
+      {{ end }}
+      {{ $cover := cond (ne (default "" .Params.cover) "") .Params.cover nil }}
+      {{ partial "card.html" (dict "title" .Title "metaTop" $metaTop "metaBottom" $metaBottom "summary" .Params.summary "links" $links "tags" (or .Params.tags .Params.tech) "style" (.Params.cardStyle | default (site.Params.cards.defaultStyle)) "cover" $cover) }}
+    {{ end }}
+  </div>
+</div>
+{{ end }}

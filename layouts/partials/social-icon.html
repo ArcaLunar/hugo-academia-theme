@@ -1,0 +1,23 @@
+{{ $raw := .icon | default "" }}
+{{ $size := .size | default 22 }}
+{{ $icon := lower $raw }}
+{{ $fa := "" }}
+{{ if or (hasPrefix $raw "fa ") (hasPrefix $raw "fas ") (hasPrefix $raw "far ") (hasPrefix $raw "fab ") (hasPrefix $raw "fa-") (hasPrefix $raw "fas-") (hasPrefix $raw "far-") (hasPrefix $raw "fab-") }}
+  {{ $fa = $raw }}
+{{ else if or (eq $icon "github") (eq $icon "gh") }}
+  {{ $fa = "fab fa-github" }}
+{{ else if or (eq $icon "linkedin") (eq $icon "li") }}
+  {{ $fa = "fab fa-linkedin" }}
+{{ else if or (eq $icon "scholar") (eq $icon "google scholar") (eq $icon "gs") }}
+  {{ $fa = "fa-solid fa-graduation-cap" }}
+{{ else if or (eq $icon "twitter") (eq $icon "x") }}
+  {{ $fa = "fab fa-x-twitter" }}
+{{ else if eq $icon "email" }}
+  {{ $fa = "fa-regular fa-envelope" }}
+{{ end }}
+
+{{ if $fa }}
+  <i class="{{ $fa }}" aria-hidden="true" style="font-size: {{ $size }}px;"></i>
+{{ else }}
+  <span class="icon-text">{{ .label }}</span>
+{{ end }}

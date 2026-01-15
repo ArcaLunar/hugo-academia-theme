@@ -1,0 +1,71 @@
+{{ define "main" }}
+<div class="home">
+  <section id="education" class="section">
+    {{ partial "section-heading.html" (dict "title" "Education") }}
+    <div class="timeline">
+      {{ range site.Params.education }}
+      <div class="timeline-item">
+        <div class="timeline-title">{{ .school }}</div>
+        <div class="timeline-meta-top">{{ .degree }}</div>
+        <div class="timeline-meta-bottom">{{ .period }}</div>
+        {{ with .note }}<p class="timeline-note">{{ . }}</p>{{ end }}
+      </div>
+      {{ end }}
+    </div>
+  </section>
+
+  <section id="awards" class="section">
+    {{ partial "section-heading.html" (dict "title" "Awards") }}
+    <div class="timeline">
+      {{ range site.Params.awards }}
+      <div class="timeline-item">
+        <div class="timeline-title">{{ .title }}</div>
+        <div class="timeline-meta-top">{{ .org }}</div>
+        <div class="timeline-meta-bottom">{{ .year }}</div>
+        {{ with .note }}<p class="timeline-note">{{ . }}</p>{{ end }}
+      </div>
+      {{ end }}
+    </div>
+  </section>
+
+  <section id="teaching" class="section">
+    {{ partial "section-heading.html" (dict "title" "Teaching") }}
+    <div class="timeline">
+      {{ range site.Params.teaching }}
+      <div class="timeline-item">
+        <div class="timeline-title">{{ .title }}</div>
+        <div class="timeline-meta-top">{{ .role }}</div>
+        <div class="timeline-meta-bottom">{{ .term }}</div>
+        {{ with .note }}<p class="timeline-note">{{ . }}</p>{{ end }}
+      </div>
+      {{ end }}
+    </div>
+  </section>
+
+  <section id="publications" class="section">
+    {{ partial "section-heading.html" (dict "title" "Publications") }}
+    {{ $pubs := where (where site.RegularPages "Section" "papers") "Params.featured" true }}
+    {{ if not (gt (len $pubs) 0) }}
+      {{ $pubs = where site.RegularPages "Section" "papers" }}
+    {{ end }}
+    <div class="card-list">
+      {{ range $pubs.ByDate.Reverse }}
+        {{ partial "card.html" (dict "title" .Title "metaTop" (or .Params.venue "") "metaBottom" (or .Params.year "") "summary" .Params.summary "links" (.Params.links | default (slice (dict "label" "Read" "url" .Permalink))) "tags" .Params.tags "style" .Params.cardStyle) }}
+      {{ end }}
+    </div>
+  </section>
+
+  <section id="projects" class="section">
+    {{ partial "section-heading.html" (dict "title" "Projects") }}
+    {{ $projects := where (where site.RegularPages "Section" "projects") "Params.featured" true }}
+    {{ if not (gt (len $projects) 0) }}
+      {{ $projects = where site.RegularPages "Section" "projects" }}
+    {{ end }}
+    <div class="card-list">
+      {{ range $projects.ByDate.Reverse }}
+        {{ partial "card.html" (dict "title" .Title "metaTop" (or .Params.role (or .Params.period "")) "metaBottom" (or .Params.period "") "summary" .Params.summary "links" (.Params.links | default (slice (dict "label" "View" "url" (or .Params.link .Permalink)))) "tags" .Params.tech "style" .Params.cardStyle) }}
+      {{ end }}
+    </div>
+  </section>
+</div>
+{{ end }}

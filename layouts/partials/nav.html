@@ -1,0 +1,11 @@
+{{ $navItems := site.Params.nav.items }}
+<nav class="nav">
+  <div class="nav-brand">
+    <a href="{{ "/" | relURL }}">{{ site.Title }}</a>
+  </div>
+  <div class="nav-links">
+    {{ range $navItems }}
+      <a class="nav-link" href="{{ .url | relURL }}">{{ .label }}</a>
+    {{ end }}
+  </div>
+</nav>
