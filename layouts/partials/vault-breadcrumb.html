@@ -1,0 +1,18 @@
+{{ $page := .page | default . }}
+{{ $parts := split (trim (strings.TrimPrefix "/space/notes" $page.RelPermalink) "/") "/" }}
+{{ $accum := "" }}
+<nav class="vault-breadcrumb-nav" aria-label="Breadcrumb">
+  <ol>
+    <li><a href="/space/notes/">Space / Notes</a></li>
+    {{ range $i, $p := $parts }}
+      {{ if gt (len $p) 0 }}
+        {{ $accum = printf "%s/%s" $accum $p }}
+        {{ if lt (add $i 1) (len $parts) }}
+          <li><a href="{{ printf "/space/notes/%s/" $accum }}">{{ $p }}</a></li>
+        {{ else }}
+          <li aria-current="page">{{ $p }}</li>
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  </ol>
+</nav>

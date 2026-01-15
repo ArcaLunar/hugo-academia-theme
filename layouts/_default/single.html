@@ -1,29 +1,93 @@
 {{ define "main" }}
-<article class="single">
-  <header class="single-header">
-    <h1>{{ .Title }}</h1>
-    <div class="meta">
-      {{ if eq .Section "papers" }}
-        {{ with .Params.authors }}<span>{{ delimit . ", " }}</span>{{ end }}
-        {{ with .Params.venue }} · <span>{{ . }}</span>{{ end }}
-        {{ with .Params.year }} · <span>{{ . }}</span>{{ end }}
-      {{ else if eq .Section "projects" }}
-        {{ with .Params.period }}<span>{{ . }}</span>{{ end }}
-        {{ with .Params.role }} · <span>{{ . }}</span>{{ end }}
-      {{ else if eq .Section "blog" }}
-        {{ .Date.Format "2006-01-02" }}
-      {{ else }}
-        {{ .Date.Format "2006-01-02" }}
-      {{ end }}
-    </div>
-  </header>
-  <div class="content markdown-body">
-    {{ .Content }}
-  </div>
-  {{ with .Params.links }}
-  <div class="links">
-    {{ range . }}<a class="link-soft" href="{{ .url }}">{{ .label }}</a>{{ end }}
-  </div>
+<div class="article-shell">
+  {{ with .TableOfContents }}
+  <aside class="toc-sidebar">
+    <h3>Contents</h3>
+    <nav id="toc" aria-label="Table of contents">{{ . }}</nav>
+  </aside>
   {{ end }}
-</article>
+
+  <article class="single article-main">
+    <header class="single-header">
+      <h1>{{ .Title }}</h1>
+      <div class="meta">
+        {{ if eq .Section "papers" }}
+          {{ with .Params.authors }}<span>{{ delimit . ", " }}</span>{{ end }}
+          {{ with .Params.venue }} · <span>{{ . }}</span>{{ end }}
+          {{ with .Params.year }} · <span>{{ . }}</span>{{ end }}
+        {{ else if eq .Section "projects" }}
+          {{ with .Params.period }}<span>{{ . }}</span>{{ end }}
+          {{ with .Params.role }} · <span>{{ . }}</span>{{ end }}
+        {{ else if eq .Section "blog" }}
+          {{ .Date.Format "2006-01-02" }}
+        {{ else }}
+          {{ .Date.Format "2006-01-02" }}
+  {{ end }}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toc = document.querySelector('#toc');
+      if (!toc) return;
+
+      const tocLinks = toc.querySelectorAll('a');
+      tocLinks.forEach(link => {
+        const li = link.closest('li');
+        if (!li) return;
+        const subList = li.querySelector(':scope > ul');
+        if (subList) li.classList.add('has-children');
+      });
+
+      const headings = Array.from(document.querySelectorAll('.content h2, .content h3, .content h4, .content h5, .content h6'));
+      if (!headings.length) return;
+
+      const linkById = new Map();
+      tocLinks.forEach(link => {
+        const href = link.getAttribute('href') || '';
+        if (href.startsWith('#')) linkById.set(href.slice(1), link);
+      });
+
+      function setActive(id) {
+        tocLinks.forEach(l => l.classList.remove('active'));
+        const activeLink = linkById.get(id);
+        if (!activeLink) return;
+        activeLink.classList.add('active');
+
+        toc.querySelectorAll('li.expanded').forEach(node => node.classList.remove('expanded'));
+
+        let cursor = activeLink.closest('li');
+        while (cursor) {
+          cursor.classList.add('expanded');
+          cursor = cursor.parentElement?.closest('li') || null;
+        }
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        let currentId = null;
+        entries.forEach(entry => {
+          if (entry.isIntersecting) currentId = entry.target.id;
+        });
+        if (currentId) setActive(currentId);
+      }, {
+        rootMargin: '-40% 0px -50% 0px',
+        threshold: [0, 1.0]
+      });
+
+      headings.forEach(h => { if (h.id) observer.observe(h); });
+    });
+  </script>
+
+      </div>
+    </header>
+
+    <div class="content markdown-body">
+      {{ .Content }}
+    </div>
+
+    {{ with .Params.links }}
+    <div class="links">
+      {{ range . }}<a class="link-soft" href="{{ .url }}">{{ .label }}</a>{{ end }}
+    </div>
+    {{ end }}
+  </article>
+</div>
 {{ end }}

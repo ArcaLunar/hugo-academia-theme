@@ -1,0 +1,28 @@
+{{- /* Render hook for links: converts [[wikilink]] patterns */ -}}
+{{- $dest := .Destination -}}
+{{- $text := .Text -}}
+{{- $title := .Title -}}
+
+{{- /* Check if it's a wikilink pattern (starts with [[ and ends with ]]) */ -}}
+{{- if and (hasPrefix $dest "[[") (hasSuffix $dest "]]") -}}
+  {{- $linkText := trim (strings.TrimPrefix "[[" (strings.TrimSuffix "]]" $dest)) " " -}}
+  {{- $displayText := $text -}}
+  {{- if in $linkText "|" -}}
+    {{- $parts := split $linkText "|" -}}
+    {{- $linkText = index $parts 0 -}}
+    {{- $displayText = index $parts 1 -}}
+  {{- end -}}
+  {{- $target := "" -}}
+  {{- range where site.RegularPages "Type" "wiki" -}}
+    {{- if or (eq .Title $linkText) (eq .File.BaseFileName $linkText) -}}
+      {{- $target = .RelPermalink -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if $target -}}
+    <a href="{{ $target }}" class="wikilink">{{ $displayText }}</a>
+  {{- else -}}
+    <span class="wikilink wikilink-broken" title="Page not found">{{ $displayText }}</span>
+  {{- end -}}
+{{- else -}}
+  <a href="{{ $dest | safeURL }}"{{ with $title }} title="{{ . }}"{{ end }}>{{ $text }}</a>
+{{- end -}}

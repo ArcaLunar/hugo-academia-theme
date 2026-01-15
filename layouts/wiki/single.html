@@ -1,0 +1,30 @@
+{{ define "main" }}
+{{ $allPages := site.RegularPages }}
+<div class="wiki-shell">
+  <aside class="wiki-tree-shell">
+    {{ partial "wiki-tree.html" (dict "pages" $allPages "current" . "prefix" "/wiki/") }}
+  </aside>
+
+  <article class="wiki-content article-main">
+    <nav class="wiki-breadcrumb">{{ partial "wiki-breadcrumb.html" . }}</nav>
+    
+    <header class="wiki-article-header">
+      <h1>{{ .Title }}</h1>
+      <div class="wiki-article-meta">
+        {{ with .Date }}<time datetime="{{ .Format "2006-01-02" }}">{{ .Format "January 2, 2006" }}</time>{{ end }}
+        {{ with .Params.tags }}
+          <span class="wiki-tags">
+            {{ range . }}<span class="wiki-tag">#{{ . }}</span>{{ end }}
+          </span>
+        {{ end }}
+      </div>
+    </header>
+
+    <div class="wiki-article-body markdown-body">
+      {{ .Content }}
+    </div>
+
+    {{ partial "wiki-backlinks.html" . }}
+  </article>
+</div>
+{{ end }}

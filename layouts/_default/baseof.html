@@ -6,30 +6,42 @@
     <title>{{ block "title" . }}{{ .Site.Title }}{{ end }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=LXGW+WenKai:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=LXGW+WenKai:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="{{ "css/main.css" | relURL }}">
     <link rel="stylesheet" href="{{ "css/github-markdown.css" | relURL }}">
-</head>
-<body class="{{ if .IsPage }}single-page{{ end }}">
-    <header class="site-header">
-        {{ partial "nav.html" . }}
-    </header>
-    {{ if .IsPage }}
-      <main class="content-area content-area--single">
-        {{ block "main" . }}{{ end }}
-      </main>
-    {{ else }}
-      <div class="page-shell">
-          <aside class="sidebar">
-              {{ partial "profile.html" . }}
-          </aside>
-          <main class="content-area">
-              {{ block "main" . }}{{ end }}
-          </main>
-      </div>
-    {{ end }}
-    <script>
+    <link rel="stylesheet" href="{{ "css/custom.css" | relURL }}">
+    <script src="{{ "js/vault-tree.js" | relURL }}" defer></script>
+    <script src="{{ "js/wiki-tree.js" | relURL }}" defer></script>
+  </head>
+ <body class="{{ if .IsPage }}single-page{{ end }} {{ if .Section }}section-{{ .Section }}{{ end }}">
+     <header class="site-header">
+         {{ partial "nav.html" . }}
+     </header>
+     {{ if .IsPage }}
+       <main class="content-area content-area--single">
+         {{ block "main" . }}{{ end }}
+       </main>
+     {{ else if eq .Section "space" }}
+       <main class="content-area">
+         {{ block "main" . }}{{ end }}
+       </main>
+     {{ else if eq .Section "wiki" }}
+       <main class="content-area">
+         {{ block "main" . }}{{ end }}
+       </main>
+     {{ else }}
+       <div class="page-shell">
+           <aside class="sidebar">
+               {{ partial "profile.html" . }}
+           </aside>
+           <main class="content-area">
+               {{ block "main" . }}{{ end }}
+           </main>
+       </div>
+     {{ end }}
+     <script>
+
       window.MathJax = {
         tex: {inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$','$$'], ['\\[','\\]']]},
         options: {skipHtmlTags: ['script','noscript','style','textarea','pre','code']}

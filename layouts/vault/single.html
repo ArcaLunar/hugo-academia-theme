@@ -1,0 +1,21 @@
+{{ define "main" }}
+{{ $allPages := site.RegularPages }}
+<div class="vault-shell">
+  <aside class="vault-tree-shell">
+    {{ partial "vault-tree.html" (dict "pages" $allPages "current" .) }}
+  </aside>
+
+  <article class="vault-content article-main">
+    <div class="vault-breadcrumb">{{ partial "vault-breadcrumb.html" (dict "page" .) }}</div>
+    <header class="single-header">
+      <h1>{{ .Title }}</h1>
+      <div class="meta">
+        {{ with .Date }}{{ .Format "2006-01-02" }}{{ end }}
+      </div>
+    </header>
+    <div class="content markdown-body">
+      {{ .Content }}
+    </div>
+  </article>
+</div>
+{{ end }}

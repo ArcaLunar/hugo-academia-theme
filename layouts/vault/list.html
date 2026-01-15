@@ -1,0 +1,47 @@
+{{ define "main" }}
+{{ $allPages := site.RegularPages }}
+<div class="vault-shell">
+  <aside class="vault-tree-shell">
+    {{ partial "vault-tree.html" (dict "pages" $allPages "current" .) }}
+  </aside>
+
+  <section class="vault-content">
+    <div class="vault-breadcrumb">{{ partial "vault-breadcrumb.html" (dict "page" .) }}</div>
+    <header class="vault-header">
+      <h1>{{ if .Title }}{{ .Title }}{{ else }}Folder{{ end }}</h1>
+    </header>
+
+    <div class="vault-folder">
+      {{ $sections := sort .Sections "Title" }}
+      {{ $pages := sort .RegularPages "Title" }}
+
+      {{ if $sections }}
+        <h3>Folders</h3>
+        <div class="vault-folder-list">
+          {{ range $sections }}
+            <a class="vault-card" href="{{ .RelPermalink }}">
+              <div class="vault-card-title">{{ if .Title }}{{ .Title }}{{ else }}{{ .File.BaseFileName }}{{ end }}</div>
+            </a>
+          {{ end }}
+        </div>
+      {{ end }}
+
+      {{ if $pages }}
+        <h3>Notes</h3>
+        <div class="vault-note-list">
+          {{ range $pages }}
+            <a class="vault-card" href="{{ .RelPermalink }}">
+              <div class="vault-card-title">{{ if .Title }}{{ .Title }}{{ else }}{{ .File.BaseFileName }}{{ end }}</div>
+              {{ with .Date }}<div class="vault-card-meta">{{ .Format "2006-01-02" }}</div>{{ end }}
+            </a>
+          {{ end }}
+        </div>
+      {{ end }}
+
+      {{ if and (not $sections) (not $pages) }}
+        <p class="vault-empty">No items in this folder.</p>
+      {{ end }}
+    </div>
+  </section>
+</div>
+{{ end }}

@@ -1,0 +1,93 @@
+{{- $current := .current -}}
+{{- $pages := .pages -}}
+
+{{- $notes := slice -}}
+{{- range $pages -}}
+  {{- if (hasPrefix .RelPermalink "/space/notes/") -}}
+    {{- $notes = $notes | append . -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if not (len $notes) -}}
+  <div class="vault-empty">No notes found. Check note_root configuration.</div>
+{{- else -}}
+
+{{- $scratch := newScratch -}}
+{{- $scratch.Set "nodes" (dict "" (dict "title" "Notes" "url" "/space/notes/" "childKeys" (slice) "pageKeys" (slice))) -}}
+{{- $scratch.Set "pageStore" (dict) -}}
+
+{{- range $i, $p := $notes -}}
+  {{- $rel := trim (strings.TrimPrefix "/space/notes" $p.RelPermalink) "/" -}}
+  {{- $parts := split $rel "/" -}}
+  {{- $dirs := slice -}}
+  {{- if gt (len $parts) 1 -}}
+    {{- $dirs = first (sub (len $parts) 1) $parts -}}
+  {{- end -}}
+
+  {{- $pathSoFar := "" -}}
+  {{- range $dirs -}}
+    {{- $pathSoFar = cond (eq $pathSoFar "") . (printf "%s/%s" $pathSoFar .) -}}
+    {{- $nodes := $scratch.Get "nodes" -}}
+    {{- if not (index $nodes $pathSoFar) -}}
+      {{- $scratch.Set "nodes" (merge $nodes (dict $pathSoFar (dict "title" . "url" (printf "/space/notes/%s/" $pathSoFar) "childKeys" (slice) "pageKeys" (slice)))) -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- $parentPath := cond (gt (len $dirs) 0) (delimit $dirs "/") "" -}}
+  {{- $nodes := $scratch.Get "nodes" -}}
+  {{- $parent := index $nodes $parentPath -}}
+  {{- $pageKey := printf "page-%d" $i -}}
+  {{- $scratch.Set "pageStore" (merge ($scratch.Get "pageStore") (dict $pageKey $p)) -}}
+  {{- $newPageKeys := $parent.pageKeys | default (slice) | append $pageKey -}}
+  {{- $scratch.Set "nodes" (merge $nodes (dict $parentPath (merge $parent (dict "pageKeys" $newPageKeys)))) -}}
+{{- end -}}
+
+{{- $nodes := $scratch.Get "nodes" -}}
+{{- range $k, $v := $nodes -}}
+  {{- if eq $k "" -}}{{- continue -}}{{- end -}}
+  {{- $parentPath := "" -}}
+  {{- if in $k "/" -}}
+    {{- $parentPath = replaceRE "/[^/]+$" "" $k -}}
+  {{- end -}}
+  {{- $parent := index $nodes $parentPath -}}
+  {{- $newChildKeys := $parent.childKeys | default (slice) | append $k -}}
+  {{- $scratch.Set "nodes" (merge ($scratch.Get "nodes") (dict $parentPath (merge $parent (dict "childKeys" $newChildKeys)))) -}}
+{{- end -}}
+
+{{- $nodes = $scratch.Get "nodes" -}}
+{{- $pageStore := $scratch.Get "pageStore" -}}
+{{- $root := index $nodes "" -}}
+{{- template "vault-tree-render" (dict "node" $root "nodes" $nodes "pageStore" $pageStore "current" $current "level" 0) -}}
+
+{{- end -}}
+
+{{- define "vault-tree-render" -}}
+  {{- $node := .node -}}
+  {{- $nodes := .nodes -}}
+  {{- $pageStore := .pageStore -}}
+  {{- $current := .current -}}
+  {{- $level := .level -}}
+  {{- $childKeys := $node.childKeys | default (slice) -}}
+  {{- $pageKeys := $node.pageKeys | default (slice) -}}
+  {{- if or (gt (len $childKeys) 0) (gt (len $pageKeys) 0) -}}
+    <ul class="vault-tree level-{{ $level }}">
+      {{- range sort $childKeys -}}
+        {{- $child := index $nodes . -}}
+        {{- $isActive := eq $child.url $current.RelPermalink -}}
+        {{- $isAncestor := and (not $isActive) (hasPrefix $current.RelPermalink $child.url) -}}
+        <li class="has-children {{ if $isActive }}active{{ end }} {{ if $isAncestor }}ancestor{{ end }}">
+          <a href="{{ $child.url }}">{{ $child.title }}</a>
+          {{- template "vault-tree-render" (dict "node" $child "nodes" $nodes "pageStore" $pageStore "current" $current "level" (add $level 1)) -}}
+        </li>
+      {{- end -}}
+      {{- range sort $pageKeys -}}
+        {{- $p := index $pageStore . -}}
+        {{- $title := cond (ne $p.Title "") $p.Title $p.File.BaseFileName -}}
+        {{- $isActive := eq $p.RelPermalink $current.RelPermalink -}}
+        <li class="{{ if $isActive }}active{{ end }}">
+          <a href="{{ $p.RelPermalink }}">{{ $title }}</a>
+        </li>
+      {{- end -}}
+    </ul>
+  {{- end -}}
+{{- end -}}

@@ -1,0 +1,40 @@
+{{ $page := . }}
+{{ $prefix := "/wiki/" }}
+{{ $parts := split (trim (strings.TrimPrefix "/wiki" $page.RelPermalink) "/") "/" }}
+{{ $accum := "" }}
+
+{{/* Build a map of folder URLs to their _index titles */}}
+{{ $folderTitles := dict }}
+{{ range site.Pages }}
+  {{ if and (hasPrefix .RelPermalink $prefix) .File }}
+    {{ if eq .File.BaseFileName "_index" }}
+      {{ $folderTitles = merge $folderTitles (dict .RelPermalink .Title) }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+
+<nav class="wiki-breadcrumb-nav" aria-label="Breadcrumb">
+  <ol>
+    <li><a href="/wiki/">Wiki</a></li>
+    {{ range $i, $slug := $parts }}
+      {{ if gt (len $slug) 0 }}
+        {{ $accum = printf "%s/%s" $accum $slug }}
+        {{ $folderURL := printf "/wiki%s/" $accum }}
+        {{/* Get display title from _index or transform slug */}}
+        {{ $displayTitle := index $folderTitles $folderURL }}
+        {{ if not $displayTitle }}
+          {{ $displayTitle = replace $slug "-" " " | title }}
+        {{ end }}
+        {{/* For single pages, use page title */}}
+        {{ if and (eq (add $i 1) (len $parts)) $page.IsPage }}
+          {{ $displayTitle = $page.Title | default $slug }}
+        {{ end }}
+        {{ if lt (add $i 1) (len $parts) }}
+          <li><a href="{{ $folderURL }}">{{ $displayTitle }}</a></li>
+        {{ else }}
+          <li aria-current="page">{{ $displayTitle }}</li>
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  </ol>
+</nav>

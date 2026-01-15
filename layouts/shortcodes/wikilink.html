@@ -1,0 +1,16 @@
+{{/*
+  Wikilink shortcode: {{< wikilink "Page Title" >}} or {{< wikilink "Page Title" "Custom Text" >}}
+*/}}
+{{- $linkText := .Get 0 -}}
+{{- $displayText := .Get 1 | default $linkText -}}
+{{- $target := "" -}}
+{{- range where site.RegularPages "Type" "wiki" -}}
+  {{- if or (eq .Title $linkText) (eq .File.BaseFileName $linkText) -}}
+    {{- $target = .RelPermalink -}}
+  {{- end -}}
+{{- end -}}
+{{- if $target -}}
+<a href="{{ $target }}" class="wikilink">{{ $displayText }}</a>
+{{- else -}}
+<span class="wikilink wikilink-broken" title="Page not found">{{ $displayText }}</span>
+{{- end -}}

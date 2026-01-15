@@ -1,0 +1,70 @@
+{{ define "main" }}
+<style>
+  /* Scoped to the Spaces list */
+  .space-list { display: flex; flex-direction: column; gap: 20px; padding-top: 6px; }
+  .space-card { border: 1px solid #e5e7eb; border-radius: 14px; padding: 1.25rem; transition: transform 120ms ease, box-shadow 120ms ease; background: #fff; }
+  .space-card:hover { transform: translateY(-4px); box-shadow: 0 12px 26px rgba(0,0,0,0.08); }
+  .space-card-title { font-size: 1.9rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .space-card-title a { color: #0d6efd; text-decoration: none; }
+  .space-card-title a:hover { color: #0a58ca; text-decoration: none; }
+  .space-card-desc { font-size: 0.95rem; color: #4b5563; margin-bottom: 0.6rem; }
+  .space-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .space-tag { font-size: 0.75rem; font-weight: 600; color: #334155; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 999px; padding: 4px 10px; line-height: 1; }
+  .space-tag:hover { color: #0d6efd; border-color: #bfdbfe; background: #eff6ff; }
+</style>
+<section class="container mt-4 mb-5">
+  <header class="mb-0" style="gap: 1rem; row-gap: 1rem;">
+    <h1 class="mb-1">{{ .Title }}</h1>
+    {{ with .Content }}<div class="lead mb-0">{{ . }}</div>{{ end }}
+  </header>
+  <div class="w-100 mb-4"></div>
+
+  {{ $sections := .Sections }}
+  {{ $articles := where .RegularPages "Type" "ne" "vault" }}
+
+  {{ if gt (len $sections) 0 }}
+  <div class="space-list">
+      {{ range $sections.ByTitle }}
+        <div class="card h-100 shadow-sm space-card">
+          <div class="card-body">
+            {{ $title := cond (ne .Title "") .Title .File.BaseFileName }}
+            <div class="space-card-title">
+              <a href="{{ .RelPermalink }}">{{ $title }}</a>
+            </div>
+
+          {{ with .Params.description }}<p class="space-card-desc mb-2">{{ . }}</p>{{ end }}
+          {{ with .Params.tags }}
+            <div class="space-tags">
+              {{ range . }}<span class="space-tag">#{{ . }}</span>{{ end }}
+            </div>
+          {{ end }}
+        </div>
+      </div>
+    {{ end }}
+  </div>
+  {{ end }}
+
+  {{ if gt (len $articles) 0 }}
+    <div class="space-list mt-4">
+      {{ range $articles.ByDate.Reverse }}
+        <div class="card h-100 shadow-sm space-card">
+          <div class="card-body">
+            {{ $title := cond (ne .Title "") .Title .File.BaseFileName }}
+            <div class="space-card-title">
+              <a href="{{ .RelPermalink }}">{{ $title }}</a>
+            </div>
+
+          {{ with .Params.description }}<p class="space-card-desc mb-2">{{ . }}</p>{{ end }}
+          {{ with .Params.summary }}<p class="space-card-desc mb-2">{{ . }}</p>{{ end }}
+          {{ with .Params.tags }}
+            <div class="space-tags">
+              {{ range . }}<span class="space-tag">#{{ . }}</span>{{ end }}
+            </div>
+          {{ end }}
+        </div>
+      </div>
+    {{ end }}
+  </div>
+  {{ end }}
+</section>
+{{ end }}

@@ -1,0 +1,31 @@
+{{- $current := . -}}
+{{- $backlinks := slice -}}
+{{- range where site.RegularPages "Type" "wiki" -}}
+  {{- if eq .RelPermalink $current.RelPermalink -}}{{- continue -}}{{- end -}}
+  {{- $content := .RawContent -}}
+  {{- $title := $current.Title -}}
+  {{- $filename := $current.File.BaseFileName -}}
+  {{- $linked := false -}}
+  {{/* Check for [[Title]] or [[filename]] patterns */}}
+  {{- if findRE (printf `\[\[%s(\|[^\]]+)?\]\]` $title) $content -}}
+    {{- $linked = true -}}
+  {{- else if findRE (printf `\[\[%s(\|[^\]]+)?\]\]` $filename) $content -}}
+    {{- $linked = true -}}
+  {{- else if in $content $current.RelPermalink -}}
+    {{- $linked = true -}}
+  {{- end -}}
+  {{- if $linked -}}
+    {{- $backlinks = $backlinks | append . -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if gt (len $backlinks) 0 -}}
+<div class="wiki-backlinks">
+  <h3>Backlinks</h3>
+  <ul>
+    {{- range $backlinks -}}
+      <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+    {{- end -}}
+  </ul>
+</div>
+{{- end -}}
