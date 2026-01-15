@@ -4,10 +4,15 @@
 
 {{- /* Build a map of folder URLs to their _index titles */ -}}
 {{- $folderTitles := dict -}}
+{{- $sectionURLs := slice -}}
 {{- range site.Pages -}}
   {{- if and (hasPrefix .RelPermalink $prefix) .File -}}
     {{- if eq .File.BaseFileName "_index" -}}
       {{- $folderTitles = merge $folderTitles (dict .RelPermalink .Title) -}}
+      {{- /* Collect all section URLs (folders with _index.md) */ -}}
+      {{- if ne .RelPermalink $prefix -}}
+        {{- $sectionURLs = $sectionURLs | append .RelPermalink -}}
+      {{- end -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -19,15 +24,34 @@
   {{- end -}}
 {{- end -}}
 
-{{- if not (len $notes) -}}
-  <div class="wiki-empty">No pages found.</div>
-{{- else -}}
-
 {{- $scratch := newScratch -}}
 {{- $scratch.Set "nodes" (dict "" (dict "title" "Wiki" "url" $prefix "childKeys" (slice) "pageKeys" (slice))) -}}
 {{- $scratch.Set "pageStore" (dict) -}}
 {{- $scratch.Set "folderTitles" $folderTitles -}}
 
+{{- /* First, add all sections (folders with _index.md) to the tree */ -}}
+{{- range $sectionURLs -}}
+  {{- $rel := trim (strings.TrimPrefix $prefix .) "/" -}}
+  {{- if eq $rel "" -}}{{- continue -}}{{- end -}}
+  {{- $parts := split $rel "/" -}}
+  
+  {{- $pathSoFar := "" -}}
+  {{- range $parts -}}
+    {{- $pathSoFar = cond (eq $pathSoFar "") . (printf "%s/%s" $pathSoFar .) -}}
+    {{- $nodes := $scratch.Get "nodes" -}}
+    {{- if not (index $nodes $pathSoFar) -}}
+      {{- $folderURL := printf "%s%s/" $prefix $pathSoFar -}}
+      {{- $ft := $scratch.Get "folderTitles" -}}
+      {{- $displayTitle := index $ft $folderURL -}}
+      {{- if not $displayTitle -}}
+        {{- $displayTitle = replace . "-" " " | title -}}
+      {{- end -}}
+      {{- $scratch.Set "nodes" (merge $nodes (dict $pathSoFar (dict "title" $displayTitle "url" $folderURL "childKeys" (slice) "pageKeys" (slice)))) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Then add all regular pages */ -}}
 {{- range $i, $p := $notes -}}
   {{- $rel := trim (strings.TrimPrefix $prefix $p.RelPermalink) "/" -}}
   {{- if eq $rel "" -}}{{- continue -}}{{- end -}}
@@ -46,7 +70,6 @@
       {{- $ft := $scratch.Get "folderTitles" -}}
       {{- $displayTitle := index $ft $folderURL -}}
       {{- if not $displayTitle -}}
-        {{- /* Transform slug to title: replace hyphens with spaces, title case */ -}}
         {{- $displayTitle = replace . "-" " " | title -}}
       {{- end -}}
       {{- $scratch.Set "nodes" (merge $nodes (dict $pathSoFar (dict "title" $displayTitle "url" $folderURL "childKeys" (slice) "pageKeys" (slice)))) -}}
@@ -62,6 +85,7 @@
   {{- $scratch.Set "nodes" (merge $nodes (dict $parentPath (merge $parent (dict "pageKeys" $newPageKeys)))) -}}
 {{- end -}}
 
+{{- /* Build parent-child relationships */ -}}
 {{- $nodes := $scratch.Get "nodes" -}}
 {{- range $k, $v := $nodes -}}
   {{- if eq $k "" -}}{{- continue -}}{{- end -}}
@@ -77,8 +101,14 @@
 {{- $nodes = $scratch.Get "nodes" -}}
 {{- $pageStore := $scratch.Get "pageStore" -}}
 {{- $root := index $nodes "" -}}
-{{- template "wiki-tree-render" (dict "node" $root "nodes" $nodes "pageStore" $pageStore "current" $current "level" 0 "prefix" $prefix) -}}
 
+{{- /* Only render if there's content */ -}}
+{{- $rootChildKeys := $root.childKeys | default (slice) -}}
+{{- $rootPageKeys := $root.pageKeys | default (slice) -}}
+{{- if or (gt (len $rootChildKeys) 0) (gt (len $rootPageKeys) 0) -}}
+  {{- template "wiki-tree-render" (dict "node" $root "nodes" $nodes "pageStore" $pageStore "current" $current "level" 0 "prefix" $prefix) -}}
+{{- else -}}
+  <div class="wiki-empty">No pages found.</div>
 {{- end -}}
 
 {{- define "wiki-tree-render" -}}
@@ -96,7 +126,8 @@
         {{- $child := index $nodes . -}}
         {{- $isActive := eq $child.url $current.RelPermalink -}}
         {{- $isAncestor := and (not $isActive) (hasPrefix $current.RelPermalink $child.url) -}}
-        <li class="has-children {{ if $isActive }}active{{ end }} {{ if $isAncestor }}ancestor{{ end }}">
+        {{- $hasContent := or (gt (len ($child.childKeys | default slice)) 0) (gt (len ($child.pageKeys | default slice)) 0) -}}
+        <li class="{{ if $hasContent }}has-children{{ end }} {{ if $isActive }}active{{ end }} {{ if $isAncestor }}ancestor expanded{{ end }}">
           <a href="{{ $child.url }}">{{ $child.title }}</a>
           {{- template "wiki-tree-render" (dict "node" $child "nodes" $nodes "pageStore" $pageStore "current" $current "level" (add $level 1) "prefix" $prefix) -}}
         </li>

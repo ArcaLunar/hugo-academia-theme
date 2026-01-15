@@ -28,6 +28,22 @@
     </div>
   </section>
 
+  {{ with site.Params.experience }}
+  <section id="experience" class="section">
+    {{ partial "section-heading.html" (dict "title" "Working Experience") }}
+    <div class="timeline">
+      {{ range . }}
+      <div class="timeline-item">
+        <div class="timeline-title">{{ .position }}</div>
+        <div class="timeline-meta-top">{{ .company }}</div>
+        <div class="timeline-meta-bottom">{{ .period }}</div>
+        {{ with .note }}<p class="timeline-note">{{ . }}</p>{{ end }}
+      </div>
+      {{ end }}
+    </div>
+  </section>
+  {{ end }}
+
   <section id="teaching" class="section">
     {{ partial "section-heading.html" (dict "title" "Teaching") }}
     <div class="timeline">
