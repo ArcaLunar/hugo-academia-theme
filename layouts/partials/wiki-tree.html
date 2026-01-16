@@ -2,13 +2,18 @@
 {{- $pages := .pages -}}
 {{- $prefix := .prefix | default "/wiki/" -}}
 
-{{- /* Build a map of folder URLs to their _index titles */ -}}
+{{- /* Build a map of folder URLs to their _index titles and summaries */ -}}
 {{- $folderTitles := dict -}}
+{{- $folderSummaries := dict -}}
 {{- $sectionURLs := slice -}}
 {{- range site.Pages -}}
   {{- if and (hasPrefix .RelPermalink $prefix) .File -}}
     {{- if eq .File.BaseFileName "_index" -}}
       {{- $folderTitles = merge $folderTitles (dict .RelPermalink .Title) -}}
+      {{- $pageURL := .RelPermalink -}}
+      {{- with .Params.summary -}}
+        {{- $folderSummaries = merge $folderSummaries (dict $pageURL .) -}}
+      {{- end -}}
       {{- /* Collect all section URLs (folders with _index.md) */ -}}
       {{- if ne .RelPermalink $prefix -}}
         {{- $sectionURLs = $sectionURLs | append .RelPermalink -}}
@@ -28,6 +33,7 @@
 {{- $scratch.Set "nodes" (dict "" (dict "title" "Wiki" "url" $prefix "childKeys" (slice) "pageKeys" (slice))) -}}
 {{- $scratch.Set "pageStore" (dict) -}}
 {{- $scratch.Set "folderTitles" $folderTitles -}}
+{{- $scratch.Set "folderSummaries" $folderSummaries -}}
 
 {{- /* First, add all sections (folders with _index.md) to the tree */ -}}
 {{- range $sectionURLs -}}
@@ -42,11 +48,13 @@
     {{- if not (index $nodes $pathSoFar) -}}
       {{- $folderURL := printf "%s%s/" $prefix $pathSoFar -}}
       {{- $ft := $scratch.Get "folderTitles" -}}
+      {{- $fs := $scratch.Get "folderSummaries" -}}
       {{- $displayTitle := index $ft $folderURL -}}
       {{- if not $displayTitle -}}
         {{- $displayTitle = replace . "-" " " | title -}}
       {{- end -}}
-      {{- $scratch.Set "nodes" (merge $nodes (dict $pathSoFar (dict "title" $displayTitle "url" $folderURL "childKeys" (slice) "pageKeys" (slice)))) -}}
+      {{- $summary := index $fs $folderURL -}}
+      {{- $scratch.Set "nodes" (merge $nodes (dict $pathSoFar (dict "title" $displayTitle "summary" $summary "url" $folderURL "childKeys" (slice) "pageKeys" (slice)))) -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -68,11 +76,13 @@
     {{- if not (index $nodes $pathSoFar) -}}
       {{- $folderURL := printf "%s%s/" $prefix $pathSoFar -}}
       {{- $ft := $scratch.Get "folderTitles" -}}
+      {{- $fs := $scratch.Get "folderSummaries" -}}
       {{- $displayTitle := index $ft $folderURL -}}
       {{- if not $displayTitle -}}
         {{- $displayTitle = replace . "-" " " | title -}}
       {{- end -}}
-      {{- $scratch.Set "nodes" (merge $nodes (dict $pathSoFar (dict "title" $displayTitle "url" $folderURL "childKeys" (slice) "pageKeys" (slice)))) -}}
+      {{- $summary := index $fs $folderURL -}}
+      {{- $scratch.Set "nodes" (merge $nodes (dict $pathSoFar (dict "title" $displayTitle "summary" $summary "url" $folderURL "childKeys" (slice) "pageKeys" (slice)))) -}}
     {{- end -}}
   {{- end -}}
 
@@ -93,9 +103,10 @@
   {{- if in $k "/" -}}
     {{- $parentPath = replaceRE "/[^/]+$" "" $k -}}
   {{- end -}}
-  {{- $parent := index $nodes $parentPath -}}
+  {{- $currentNodes := $scratch.Get "nodes" -}}
+  {{- $parent := index $currentNodes $parentPath -}}
   {{- $newChildKeys := $parent.childKeys | default (slice) | append $k -}}
-  {{- $scratch.Set "nodes" (merge ($scratch.Get "nodes") (dict $parentPath (merge $parent (dict "childKeys" $newChildKeys)))) -}}
+  {{- $scratch.Set "nodes" (merge $currentNodes (dict $parentPath (merge $parent (dict "childKeys" $newChildKeys)))) -}}
 {{- end -}}
 
 {{- $nodes = $scratch.Get "nodes" -}}
@@ -127,8 +138,15 @@
         {{- $isActive := eq $child.url $current.RelPermalink -}}
         {{- $isAncestor := and (not $isActive) (hasPrefix $current.RelPermalink $child.url) -}}
         {{- $hasContent := or (gt (len ($child.childKeys | default slice)) 0) (gt (len ($child.pageKeys | default slice)) 0) -}}
-        <li class="{{ if $hasContent }}has-children{{ end }} {{ if $isActive }}active{{ end }} {{ if $isAncestor }}ancestor expanded{{ end }}">
-          <a href="{{ $child.url }}">{{ $child.title }}</a>
+        <li class="wiki-tree-folder {{ if $hasContent }}has-children{{ end }} {{ if $isActive }}active{{ end }} {{ if $isAncestor }}ancestor expanded{{ end }}">
+          <a href="{{ $child.url }}">
+            {{- if $hasContent -}}<i class="fa-solid fa-chevron-right wiki-tree-chevron"></i>{{- end -}}
+            <i class="fa-solid fa-folder wiki-tree-icon"></i>
+            <span class="wiki-tree-title">{{ $child.title }}</span>
+          </a>
+          {{- with $child.summary -}}
+          <span class="wiki-tree-summary">{{ . }}</span>
+          {{- end -}}
           {{- template "wiki-tree-render" (dict "node" $child "nodes" $nodes "pageStore" $pageStore "current" $current "level" (add $level 1) "prefix" $prefix) -}}
         </li>
       {{- end -}}
@@ -136,8 +154,11 @@
         {{- $p := index $pageStore . -}}
         {{- $title := cond (ne $p.Title "") $p.Title $p.File.BaseFileName -}}
         {{- $isActive := eq $p.RelPermalink $current.RelPermalink -}}
-        <li class="{{ if $isActive }}active{{ end }}">
-          <a href="{{ $p.RelPermalink }}">{{ $title }}</a>
+        <li class="wiki-tree-article {{ if $isActive }}active{{ end }}">
+          <a href="{{ $p.RelPermalink }}">
+            <i class="fa-solid fa-file-lines wiki-tree-icon"></i>
+            <span class="wiki-tree-title">{{ $title }}</span>
+          </a>
         </li>
       {{- end -}}
     </ul>
