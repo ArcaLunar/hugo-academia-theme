@@ -26,7 +26,12 @@
         {{ $links = slice (dict "label" "Read" "url" .Permalink) }}
       {{ end }}
       {{ $cover := cond (ne (default "" .Params.cover) "") .Params.cover nil }}
-      {{ partial "card.html" (dict "title" .Title "metaTop" $metaTop "metaBottom" $metaBottom "summary" .Params.summary "links" $links "tags" (or .Params.tags .Params.tech) "style" (.Params.cardStyle | default (site.Params.cards.defaultStyle)) "cover" $cover) }}
+      {{ $allTags := or .Params.tags .Params.tech }}
+      {{ $tagString := "" }}
+      {{ with $allTags }}
+        {{ $tagString = delimit . "," }}
+      {{ end }}
+      {{ partial "card.html" (dict "title" .Title "metaTop" $metaTop "metaBottom" $metaBottom "summary" .Params.summary "links" $links "tags" $allTags "style" (.Params.cardStyle | default (site.Params.cards.defaultStyle)) "cover" $cover "dataTitle" .Title "dataTags" $tagString) }}
     {{ end }}
   </div>
 </div>

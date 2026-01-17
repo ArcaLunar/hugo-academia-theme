@@ -1,0 +1,37 @@
+{{ define "main" }}
+<div class="list-page">
+  <div class="list-header">
+    <h1>{{ if .Title }}{{ .Title }}{{ else }}Snippets{{ end }}</h1>
+    {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
+    <div class="search-wrapper">
+      <i class="fa-solid fa-search search-icon"></i>
+      <input type="text" id="snippets-search" placeholder="Search snippets... (use # for tags)" class="search-input">
+    </div>
+  </div>
+
+  {{ $pages := .RegularPages.ByDate.Reverse }}
+  {{ if $pages }}
+    <div class="card-list" id="snippets-list">
+      {{ range $pages }}
+        {{ $metaTop := .Date.Format "2006-01-02" }}
+        {{ $summary := .Params.problem | default .Params.summary }}
+        {{ $links := slice (dict "label" "Read" "url" .Permalink) }}
+        {{ $tagString := delimit .Params.tags "," }}
+        {{ partial "card.html" (dict
+          "title" .Title
+          "metaTop" $metaTop
+          "summary" $summary
+          "links" $links
+          "tags" .Params.tags
+          "style" (site.Params.cards.defaultStyle | default "card")
+          "dataTitle" .Title
+          "dataTags" $tagString
+        ) }}
+      {{ end }}
+    </div>
+    <div id="no-results" class="no-results hidden">No snippets found matching your search.</div>
+  {{ else }}
+    <p class="empty-message">No snippets yet.</p>
+  {{ end }}
+</div>
+{{ end }}

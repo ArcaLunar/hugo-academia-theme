@@ -431,3 +431,28 @@ a:hover {
   margin: 0 0 16px;
 }
 
+
+/* ========================================
+   Clickable Card Wrapper & Summary Styles
+   ======================================== */
+
+.item-card-wrapper {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.item-card-wrapper:hover .item-card {
+  transform: translateY(-2px);
+  border-color: #d3d7e0;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.item-card-wrapper:visited .item-card__title-line h3 {
+  color: var(--muted);
+}
+
+.item-card__summary {
+  margin: 12px 0 0 8px;
+  color: #64748b;
+}

@@ -30,7 +30,15 @@
        <main class="content-area">
          {{ block "main" . }}{{ end }}
        </main>
-     {{ else }}
+      {{ else if eq .Section "series" }}
+        <main class="content-area">
+          {{ block "main" . }}{{ end }}
+        </main>
+      {{ else if eq .Section "snippets" }}
+        <main class="content-area">
+          {{ block "main" . }}{{ end }}
+        </main>
+      {{ else }}
        <div class="page-shell">
            <aside class="sidebar">
                {{ partial "profile.html" . }}
@@ -47,9 +55,12 @@
         options: {skipHtmlTags: ['script','noscript','style','textarea','pre','code']}
       };
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
-    <script src="{{ "js/callouts.js" | relURL }}"></script>
-    <script src="{{ "js/mark-highlight.js" | relURL }}"></script>
-</body>
-</html>
+     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+     <script src="{{ "js/callouts.js" | relURL }}"></script>
+     <script src="{{ "js/mark-highlight.js" | relURL }}"></script>
+    {{ if eq .Section "snippets" }}
+      <script src="{{ "js/snippets-search.js" | relURL }}"></script>
+    {{ end }}
+ </body>
+ </html>
 

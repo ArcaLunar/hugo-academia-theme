@@ -1,0 +1,33 @@
+{{ define "main" }}
+{{ $taxonomy := .Data.Term }}
+{{ $taxonomySingular := cond (eq $taxonomy "series") "Series" "Series" }}
+{{ $taxonomyPlural := cond (eq $taxonomy "series") "Series" "Series" }}
+
+<div class="list-page">
+  <div class="list-header">
+    <h1>{{ $taxonomySingular }}: {{ $taxonomy }}</h1>
+    <p class="lead">{{ len .Pages }} {{ $taxonomyPlural }} {{ $taxonomySingular }} with this name</p>
+  </div>
+
+  {{ if .Pages }}
+    <div class="card-list">
+      {{ range .Pages.ByDate.Reverse }}
+        {{ $metaTop := .Date.Format "2006-01-02" }}
+        {{ $links := slice (dict "label" "Read" "url" .Permalink) }}
+        {{ partial "card.html" (dict
+          "title" .Title
+          "metaTop" $metaTop
+          "summary" .Params.summary
+          "links" $links
+          "tags" .Params.tags
+          "style" (site.Params.cards.defaultStyle | default "card")
+          "dataTitle" .Title
+          "dataTags" ""
+        ) }}
+      {{ end }}
+    </div>
+  {{ else }}
+    <p class="empty-message">No {{ $taxonomyPlural }} found.</p>
+  {{ end }}
+</div>
+{{ end }}

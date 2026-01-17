@@ -1,31 +1,38 @@
 {{ $style := .style | default (site.Params.cards.defaultStyle | default "card") }}
-<article class="item-card item-card--{{ $style }}">
-  {{ with .cover }}
-    <div class="item-card__cover">
-      <img src="{{ . }}" alt="cover for {{ $.title }}">
-    </div>
-  {{ end }}
-  <div class="item-card__body">
-    <div class="item-card__title-line">
-      <h3>{{ .title }}</h3>
-      {{ with .metaRight }}<span class="item-card__meta">{{ . }}</span>{{ end }}
-    </div>
-    {{ with .metaTop }}<p class="item-card__meta">{{ . }}</p>{{ end }}
-    {{ with .metaBottom }}<p class="item-card__meta">{{ . }}</p>{{ end }}
-    {{ with .summary }}<p class="item-card__summary">{{ . }}</p>{{ end }}
-    {{ if or .links .tags }}
-    <div class="item-card__footer">
-      {{ with .links }}
-      <div class="item-card__links">
-        {{ range . }}<a href="{{ .url }}" class="link-soft">{{ .label }}</a>{{ end }}
+{{ $link := "" }}
+{{ if .links }}
+  {{ $link = index .links 0 }}
+{{ end }}
+
+{{ if $link }}
+  <a href="{{ $link.url }}" class="item-card-wrapper">
+{{ end }}
+   <article class="item-card item-card--{{ $style }}"
+            {{ with .dataTitle }}data-title="{{ . }}"{{ end }}
+            {{ with .dataTags }}data-tags="{{ . }}"{{ end }}
+            {{ with .dataSeries }}data-series="{{ . }}"{{ end }}>
+    {{ with .cover }}
+      <div class="item-card__cover">
+        <img src="{{ . }}" alt="cover for {{ $.title }}">
       </div>
-      {{ end }}
-      {{ with .tags }}
-      <div class="item-card__tags">
-        {{ range . }}<span class="tag">{{ . }}</span>{{ end }}
-      </div>
-      {{ end }}
-    </div>
     {{ end }}
-  </div>
-</article>
+    <div class="item-card__body">
+      <div class="item-card__title-line">
+        <h3>{{ .title }}</h3>
+        {{ with .metaRight }}<span class="item-card__meta">{{ . }}</span>{{ end }}
+      </div>
+      {{ with .metaTop }}<p class="item-card__meta">{{ . }}</p>{{ end }}
+      {{ with .metaBottom }}<p class="item-card__meta">{{ . }}</p>{{ end }}
+      {{ with .summary }}<p class="item-card__summary">{{ . }}</p>{{ end }}
+      {{ if .tags }}
+      <div class="item-card__footer">
+        <div class="item-card__tags">
+          {{ range .tags }}<span class="tag">{{ . }}</span>{{ end }}
+        </div>
+      </div>
+      {{ end }}
+    </div>
+  </article>
+{{ if $link }}
+  </a>
+{{ end }}

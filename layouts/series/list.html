@@ -1,0 +1,98 @@
+{{ define "main" }}
+{{/* Collect all series with counts and list of series names */}}
+{{ $seriesCounts := dict }}
+{{ $seriesKeys := slice }}
+{{ $pages := where site.RegularPages "Section" "series" | default (slice) }}
+{{ range $pages }}
+  {{ $seriesList := slice }}
+  {{ with .Params.series }}
+    {{ $kind := printf "%T" . }}
+    {{ if or (eq $kind "[]string") (eq $kind "[]interface {}") }}
+      {{ $seriesList = . }}
+    {{ else }}
+      {{ $seriesList = split (string .) "," }}
+    {{ end }}
+  {{ end }}
+  {{ range $seriesList }}
+    {{ $s := strings.TrimSpace (string .) }}
+    {{ if $s }}
+      {{ $count := index $seriesCounts $s | default 0 }}
+      {{ $seriesCounts = merge $seriesCounts (dict $s (add $count 1)) }}
+      {{ if not (in $seriesKeys $s) }}
+        {{ $seriesKeys = $seriesKeys | append $s }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+{{ $seriesKeys = sort $seriesKeys }}
+
+{{/* Determine active series term (for taxonomy pages) */}}
+{{ $activeSeries := "" }}
+{{ with .Data.Term }}
+  {{ $activeSeries = . }}
+{{ end }}
+
+{{/* Choose which pages to show: all for section root, filtered for term */}}
+{{ $sectionPages := $pages.ByDate.Reverse }}
+{{ if $activeSeries }}
+  {{ $sectionPages = where $pages "Params.series" "intersect" (slice $activeSeries) }}
+{{ end }}
+
+<div class="series-shell">
+  {{/* Left sidebar: Series */}}
+  <aside class="series-sidebar">
+    <a class="series-header" href="{{ "series/" | relURL }}">
+      <i class="fa-solid fa-tags"></i>
+      <span>Series</span>
+    </a>
+    {{ if gt (len $seriesCounts) 0 }}
+      <ul class="series-list">
+        {{ range $seriesKeys }}
+          {{ $count := index $seriesCounts . }}
+          <li class="series-item {{ if eq $activeSeries . }}active{{ end }}">
+            <a href="{{ "series/" | relURL }}{{ . | urlize }}/">
+              <span class="series-name">{{ . }}</span>
+              <span class="series-count">{{ $count }}</span>
+            </a>
+          </li>
+        {{ end }}
+      </ul>
+    {{ else }}
+      <p class="series-empty">No series yet.</p>
+    {{ end }}
+  </aside>
+
+  {{/* Right content: Cards */}}
+  <section class="series-content">
+    <div class="list-header">
+      <h1>{{ if .Title }}{{ .Title }}{{ else }}Series{{ end }}</h1>
+      {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
+    </div>
+
+    {{ if $sectionPages }}
+      <div class="card-list">
+        {{ range $sectionPages }}
+          {{ $metaTop := .Date.Format "2006-01-02" }}
+          {{ $links := slice (dict "label" "Read" "url" .Permalink) }}
+          {{ $tagString := "" }}
+          {{ with .Params.tags }}
+            {{ $tagString = delimit . "," }}
+          {{ end }}
+          {{ partial "card.html" (dict
+            "title" .Title
+            "metaTop" $metaTop
+            "summary" .Params.summary
+            "links" $links
+            "tags" .Params.tags
+            "style" (site.Params.cards.defaultStyle | default "card")
+            "dataTitle" .Title
+            "dataTags" $tagString
+          ) }}
+        {{ end }}
+      </div>
+    {{ else }}
+      <p class="series-empty">No articles yet.</p>
+    {{ end }}
+  </section>
+</div>
+{{ end }}
