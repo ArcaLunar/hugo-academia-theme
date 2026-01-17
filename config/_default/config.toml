@@ -51,6 +51,11 @@ theme = "academia"
   [params.cards]
     defaultStyle = "card" # or "borderless"
 
+  [params.code]
+    collapse = true           # Enable/disable code block collapsing
+    collapsedByDefault = true # Default state of code blocks (true = collapsed, false = expanded)
+    summaryText = "Code"      # Custom text for the code block header
+
   [[params.education]]
     school = "University A"
     degree = "PhD in CS"

@@ -58,6 +58,16 @@
      <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
      <script src="{{ "js/callouts.js" | relURL }}"></script>
      <script src="{{ "js/mark-highlight.js" | relURL }}"></script>
+     <script src="{{ "js/code-collapse.js" | relURL }}"></script>
+     <script>
+       window.siteConfig = {
+         code: {
+           collapse: {{ if .Site.Params.code.collapse }}{{ .Site.Params.code.collapse }}{{ else }}true{{ end }},
+           collapsedByDefault: {{ if .Site.Params.code.collapsedByDefault }}{{ .Site.Params.code.collapsedByDefault }}{{ else }}true{{ end }},
+           summaryText: {{ if .Site.Params.code.summaryText }}"{{ .Site.Params.code.summaryText }}"{{ else }}"Code"{{ end }}
+         }
+       };
+     </script>
     {{ if eq .Section "snippets" }}
       <script src="{{ "js/snippets-search.js" | relURL }}"></script>
     {{ end }}
