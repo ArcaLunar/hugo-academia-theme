@@ -56,6 +56,10 @@ theme = "academia"
     collapsedByDefault = true # Default state of code blocks (true = collapsed, false = expanded)
     summaryText = "Code"      # Custom text for the code block header
 
+  [params.fonts]
+    code = '"SF Mono", Consolas, "Liberation Mono", Menlo, monospace'
+    text = 'Arial, "LXGW WenKai", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+
   [[params.education]]
     school = "University A"
     degree = "PhD in CS"

@@ -6,71 +6,102 @@
     <title>{{ block "title" . }}{{ .Site.Title }}{{ end }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=LXGW+WenKai:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+      :root {
+        --font-code: {{ if .Site.Params.fonts.code }}{{ .Site.Params.fonts.code | safeCSS }}{{ else }}"SF Mono", Consolas, "Liberation Mono", Menlo, monospace{{ end }};
+        --font-text: {{ if .Site.Params.fonts.text }}{{ .Site.Params.fonts.text | safeCSS }}{{ else }}Arial, "LXGW WenKai", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif{{ end }};
+      }
+    </style>
     <link rel="stylesheet" href="{{ "css/main.css" | relURL }}">
     <link rel="stylesheet" href="{{ "css/github-markdown.css" | relURL }}">
-    <link rel="stylesheet" href="{{ "css/custom.css" | relURL }}">
-    <script src="{{ "js/vault-tree.js" | relURL }}" defer></script>
-    <script src="{{ "js/wiki-tree.js" | relURL }}" defer></script>
-  </head>
+     <link rel="stylesheet" href="{{ "css/custom.css" | relURL }}">
+     <link rel="stylesheet" href="{{ "katex/katex.min.css" | relURL }}">
+      <script src="{{ "js/vault-tree.js" | relURL }}" defer></script>
+      <script src="{{ "js/wiki-tree.js" | relURL }}" defer></script>
+      <script src="{{ "katex/katex.min.js" | relURL }}"></script>
+      <script src="{{ "katex/auto-render.min.js" | relURL }}"></script>
+   </head>
  <body class="{{ if .IsPage }}single-page{{ end }} {{ if .Section }}section-{{ .Section }}{{ end }}">
-     <header class="site-header">
-         {{ partial "nav.html" . }}
-     </header>
-     {{ if .IsPage }}
-       <main class="content-area content-area--single">
-         {{ block "main" . }}{{ end }}
-       </main>
-     {{ else if eq .Section "space" }}
-       <main class="content-area">
-         {{ block "main" . }}{{ end }}
-       </main>
-     {{ else if eq .Section "wiki" }}
-       <main class="content-area">
-         {{ block "main" . }}{{ end }}
-       </main>
-      {{ else if eq .Section "series" }}
+      <header class="site-header">
+          {{ partial "nav.html" . }}
+      </header>
+      {{ if .IsPage }}
+        <main class="content-area content-area--single">
+          {{ block "main" . }}{{ end }}
+        </main>
+      {{ else if eq .Section "space" }}
         <main class="content-area">
           {{ block "main" . }}{{ end }}
         </main>
-      {{ else if eq .Section "snippets" }}
+      {{ else if eq .Section "wiki" }}
         <main class="content-area">
           {{ block "main" . }}{{ end }}
         </main>
-      {{ else }}
-       <div class="page-shell">
-           <aside class="sidebar">
-               {{ partial "profile.html" . }}
-           </aside>
-           <main class="content-area">
-               {{ block "main" . }}{{ end }}
-           </main>
-       </div>
-     {{ end }}
-     <script>
-
-      window.MathJax = {
-        tex: {inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$','$$'], ['\\[','\\]']]},
-        options: {skipHtmlTags: ['script','noscript','style','textarea','pre','code']}
-      };
-    </script>
-     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+       {{ else if eq .Section "series" }}
+         <main class="content-area">
+           {{ block "main" . }}{{ end }}
+         </main>
+       {{ else if eq .Section "snippets" }}
+        <main class="content-area">
+          {{ block "main" . }}{{ end }}
+        </main>
+       {{ else }}
+        <div class="page-shell">
+            <aside class="sidebar">
+                {{ partial "profile.html" . }}
+            </aside>
+            <main class="content-area">
+                {{ block "main" . }}{{ end }}
+            </main>
+        </div>
+       {{ end }}
+       <script>
+         document.addEventListener("DOMContentLoaded", function() {
+             renderMathInElement(document.body, {
+                 delimiters: [
+                     {left: '$$', right: '$$', display: true},
+                     {left: '$', right: '$', display: false},
+                     {left: '\\[', right: '\\]', display: true},
+                     {left: '\\(', right: '\\)', display: false}
+                 ],
+                 throwOnError: false
+             });
+         });
+       </script>
      <script src="{{ "js/callouts.js" | relURL }}"></script>
      <script src="{{ "js/mark-highlight.js" | relURL }}"></script>
      <script src="{{ "js/code-collapse.js" | relURL }}"></script>
      <script>
        window.siteConfig = {
-         code: {
-           collapse: {{ if .Site.Params.code.collapse }}{{ .Site.Params.code.collapse }}{{ else }}true{{ end }},
-           collapsedByDefault: {{ if .Site.Params.code.collapsedByDefault }}{{ .Site.Params.code.collapsedByDefault }}{{ else }}true{{ end }},
-           summaryText: {{ if .Site.Params.code.summaryText }}"{{ .Site.Params.code.summaryText }}"{{ else }}"Code"{{ end }}
-         }
-       };
+          code: {
+            collapse: {{ if .Site.Params.code.collapse }}{{ .Site.Params.code.collapse }}{{ else }}true{{ end }},
+            collapsedByDefault: {{ if .Site.Params.code.collapsedByDefault }}{{ .Site.Params.code.collapsedByDefault }}{{ else }}true{{ end }},
+            summaryText: {{ if .Site.Params.code.summaryText }}"{{ .Site.Params.code.summaryText }}"{{ else }}"Code"{{ end }}
+          }
+        };
      </script>
-    {{ if eq .Section "snippets" }}
-      <script src="{{ "js/snippets-search.js" | relURL }}"></script>
-    {{ end }}
- </body>
- </html>
-
+       {{ if eq .Section "snippets" }}
+         <script src="{{ "js/snippets-search.js" | relURL }}"></script>
+       {{ end }}
+       {{ if eq .Section "series" }}
+         <script src="{{ "js/series-search.js" | relURL }}"></script>
+       {{ end }}
+       <script>
+         window.addEventListener("load", function() {
+           if (typeof renderMathInElement === 'function') {
+             renderMathInElement(document.body, {
+               delimiters: [
+                 {left: '$$', right: '$$', display: true},
+                 {left: '$', right: '$', display: false},
+                 {left: '\\[', right: '\\]', display: true},
+                 {left: '\\(', right: '\\)', display: false}
+               ],
+               throwOnError: false
+             });
+           }
+         });
+       </script>
+  </body>
+</html>

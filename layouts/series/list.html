@@ -39,59 +39,112 @@
 {{ end }}
 
 <div class="series-shell">
-  {{/* Left sidebar: Series */}}
+  {{/* Left sidebar: Split 40%/60% */}}
   <aside class="series-sidebar">
-    <a class="series-header" href="{{ "series/" | relURL }}">
-      <i class="fa-solid fa-tags"></i>
-      <span>Series</span>
-    </a>
-    {{ if gt (len $seriesCounts) 0 }}
-      <ul class="series-list">
-        {{ range $seriesKeys }}
-          {{ $count := index $seriesCounts . }}
-          <li class="series-item {{ if eq $activeSeries . }}active{{ end }}">
-            <a href="{{ "series/" | relURL }}{{ . | urlize }}/">
-              <span class="series-name">{{ . }}</span>
-              <span class="series-count">{{ $count }}</span>
-            </a>
-          </li>
-        {{ end }}
-      </ul>
-    {{ else }}
-      <p class="series-empty">No series yet.</p>
-    {{ end }}
-  </aside>
-
-  {{/* Right content: Cards */}}
-  <section class="series-content">
-    <div class="list-header">
-      <h1>{{ if .Title }}{{ .Title }}{{ else }}Series{{ end }}</h1>
-      {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
+    <!-- Upper 40%: Series List -->
+    <div class="series-list-container">
+      <a class="series-header" href="{{ "series/" | relURL }}">
+        <i class="fa-solid fa-tags"></i>
+        <span>Series</span>
+      </a>
+      {{ if gt (len $seriesCounts) 0 }}
+        <ul class="series-list">
+          {{ range $seriesKeys }}
+            {{ $count := index $seriesCounts . }}
+            <li class="series-item {{ if eq $activeSeries . }}active{{ end }}">
+              <a href="{{ "series/" | relURL }}{{ . | urlize }}/">
+                <span class="series-name">{{ . }}</span>
+                <span class="series-count">{{ $count }}</span>
+              </a>
+            </li>
+          {{ end }}
+        </ul>
+      {{ else }}
+        <p class="series-empty">No series yet.</p>
+      {{ end }}
     </div>
 
-    {{ if $sectionPages }}
-      <div class="card-list">
-        {{ range $sectionPages }}
-          {{ $metaTop := .Date.Format "2006-01-02" }}
-          {{ $links := slice (dict "label" "Read" "url" .Permalink) }}
-          {{ $tagString := "" }}
-          {{ with .Params.tags }}
-            {{ $tagString = delimit . "," }}
+    <!-- Lower 60%: Latest Articles List -->
+    <div class="latest-articles-container">
+      <div class="latest-header">
+        <i class="fa-solid fa-clock"></i>
+        <span>Latest</span>
+      </div>
+      {{ if $sectionPages }}
+        <ul class="article-list-simple">
+          {{ range $sectionPages }}
+            <li class="article-item-simple">
+              <a href="{{ .Permalink }}">
+                <span class="article-title">{{ .Title }}</span>
+                <span class="article-date">{{ .Date.Format "2006-01-02" }}</span>
+              </a>
+            </li>
           {{ end }}
-          {{ partial "card.html" (dict
-            "title" .Title
-            "metaTop" $metaTop
-            "summary" .Params.summary
-            "links" $links
-            "tags" .Params.tags
-            "style" (site.Params.cards.defaultStyle | default "card")
-            "dataTitle" .Title
-            "dataTags" $tagString
-          ) }}
-        {{ end }}
+        </ul>
+      {{ else }}
+        <p class="no-articles">No articles.</p>
+      {{ end }}
+    </div>
+  </aside>
+
+  {{/* Right content: Series cards (if no series selected) OR timeline (if series selected) */}}
+  <section class="series-content">
+    {{ if not $activeSeries }}
+      <!-- Show Series Cards Overview -->
+      <div class="series-cards-section">
+        <h2>Series Overview</h2>
+        <div class="series-cards-grid">
+          {{ range $seriesKeys }}
+            {{ $count := index $seriesCounts . }}
+            {{ $seriesTerm := . }}
+            {{ $termPages := where $pages "Params.series" "intersect" (slice $seriesTerm) }}
+            {{ with index $termPages 0 }}
+              {{ $seriesDesc := "" }}
+              {{/* Try to get description from series taxonomy term page */}}
+              {{ with site.GetPage (printf "/series/%s" ($seriesTerm | urlize)) }}
+                {{ with .Params.description }}
+                  {{ $seriesDesc = . }}
+                {{ end }}
+              {{ end }}
+              <article class="series-card" data-series="{{ $seriesTerm }}">
+                <a href="{{ "series/" | relURL }}{{ $seriesTerm | urlize }}/">
+                  <div class="series-card-header">
+                    <h3>{{ $seriesTerm }}</h3>
+                    <span class="series-card-count">{{ $count }} articles</span>
+                  </div>
+                  {{ with $seriesDesc }}
+                    <p class="series-card-desc">{{ . }}</p>
+                  {{ end }}
+                </a>
+              </article>
+            {{ end }}
+          {{ end }}
+        </div>
       </div>
     {{ else }}
-      <p class="series-empty">No articles yet.</p>
+      <!-- Show Timeline for selected series -->
+      <div class="timeline-section">
+        <div class="timeline-header">
+          <h2>{{ $activeSeries }}</h2>
+          <a href="{{ "series/" | relURL }}" class="back-to-series">
+            <i class="fa-solid fa-arrow-left"></i>
+            Back to all series
+          </a>
+        </div>
+        <div class="timeline-container">
+          {{ range $sectionPages }}
+            <article class="timeline-item">
+              <div class="timeline-date">{{ .Date.Format "2006-01-02" }}</div>
+              <a href="{{ .Permalink }}" class="timeline-content">
+                <span class="timeline-title">{{ .Title }}</span>
+                {{ with .Params.summary }}
+                  <p class="timeline-summary">{{ . }}</p>
+                {{ end }}
+              </a>
+            </article>
+          {{ end }}
+        </div>
+      </div>
     {{ end }}
   </section>
 </div>
